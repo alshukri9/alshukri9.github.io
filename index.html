@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Emoji Food Guessing Game</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #f4f7f6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 350px;
+      max-width: 90%;
+    }
+
+    h1, h2 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .emoji-display {
+      font-size: 80px;
+      margin: 20px 0;
+    }
+
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0 20px 0;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    input[type="text"]:focus, input[type="password"]:focus {
+      border-color: #4CAF50;
+      outline: none;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn-submit {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .btn-submit:hover {
+      background-color: #45a049;
+    }
+
+    .btn-skip {
+      background-color: #ff9800;
+      color: white;
+    }
+
+    .btn-skip:hover {
+      background-color: #e68a00;
+    }
+
+    .btn-restart {
+      background-color: #2196F3;
+      color: white;
+      width: 100%;
+    }
+
+    .btn-restart:hover {
+      background-color: #0b7dda;
+    }
+
+    .error-msg {
+      color: #d9534f;
+      font-size: 14px;
+      margin-top: -10px;
+      margin-bottom: 10px;
+      display: none;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .progress {
+      font-size: 14px;
+      color: #777;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. Password Screen -->
+  <div id="password-screen" class="card">
+    <h1>Welcome!</h1>
+    <p>Enter the password to play the game:</p>
+    <input type="password" id="password-input" placeholder="Enter Password">
+    <div id="password-error" class="error-msg">Incorrect password! Try again.</div>
+    <button class="btn-submit" onclick="checkPassword()">Enter Game</button>
+  </div>
+
+  <!-- 2. Game Screen -->
+  <div id="game-screen" class="card hidden">
+    <div class="progress">Question <span id="question-number">1</span> of 5</div>
+    <div id="emoji" class="emoji-display">🍕</div>
+    <input type="text" id="answer-input" placeholder="Type the food name..." autocomplete="off">
+    <div class="btn-group">
+      <button class="btn-submit" onclick="submitAnswer()">Submit</button>
+      <button class="btn-skip" onclick="skipQuestion()">Skip</button>
+    </div>
+  </div>
+
+  <!-- 3. Result Screen -->
+  <div id="result-screen" class="card hidden">
+    <h1>Game Over!</h1>
+    <p>Your final score:</p>
+    <h2 id="final-score">0 / 5</h2>
+    <button class="btn-restart" onclick="restartGame()">Play Again</button>
+  </div>
+
+  <script>
+    // Configuration
+    const PASSWORD = "play"; // Set your password here
+
+    // 5 Food Questions (Emoji & accepted answers)
+    const questions = [
+      { emoji: "🍕", answers: ["pizza"] },
+      { emoji: "🍔", answers: ["burger", "hamburger"] },
+      { emoji: "🌮", answers: ["taco"] },
+      { emoji: "🍣", answers: ["sushi"] },
+      { emoji: "🍦", answers: ["ice cream", "icecream"] }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    // Password Check Function
+    function checkPassword() {
+      const input = document.getElementById("password-input").value;
+      const errorMsg = document.getElementById("password-error");
+
+      if (input === PASSWORD) {
+        document.getElementById("password-screen").classList.add("hidden");
+        document.getElementById("game-screen").classList.remove("hidden");
+        loadQuestion();
+      } else {
+        errorMsg.style.display = "block";
+      }
+    }
+
+    // Load Current Question
+    function loadQuestion() {
+      document.getElementById("question-number").innerText = currentQuestionIndex + 1;
+      document.getElementById("emoji").innerText = questions[currentQuestionIndex].emoji;
+      document.getElementById("answer-input").value = "";
+      document.getElementById("answer-input").focus();
+    }
+
+    // Process Answer Submission
+    function submitAnswer() {
+      const userAnswer = document.getElementById("answer-input").value.trim().toLowerCase();
+      const validAnswers = questions[currentQuestionIndex].answers;
+
+      if (validAnswers.includes(userAnswer)) {
+        score++;
+      }
+
+      nextQuestion();
+    }
+
+    // Skip Question
+    function skipQuestion() {
+      nextQuestion();
+    }
+
+    // Advance to Next Question or End Game
+    function nextQuestion() {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < questions.length) {
+        loadQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    // Show Final Results
+    function showResults() {
+      document.getElementById("game-screen").classList.add("hidden");
+      document.getElementById("result-screen").classList.remove("hidden");
+      document.getElementById("final-score").innerText = score + " / " + questions.length;
+    }
+
+    // Restart Game
+    function restartGame() {
+      currentQuestionIndex = 0;
+      score = 0;
+      document.getElementById("result-screen").classList.add("hidden");
+      document.getElementById("game-screen").classList.remove("hidden");
+      loadQuestion();
+    }
+
+    // Allow pressing "Enter" key to submit
+    document.getElementById("password-input").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") checkPassword();
+    });
+
+    document.getElementById("answer-input").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") submitAnswer();
+    });
+  </script>
+</body>
+</html>
